@@ -89,8 +89,8 @@ func TestBootstrap(t *testing.T) {
         "connect_timeout": "0.250s",
         "load_assignment": {
           "cluster_name": "service-stats",
-          "endpoints": [   
-            {                          
+          "endpoints": [
+            {
               "lb_endpoints": [
                 {
                   "endpoint": {
@@ -98,11 +98,11 @@ func TestBootstrap(t *testing.T) {
                       "socket_address": {
                         "address": "127.0.0.1",
                         "port_value": 9001
-                      }    
-                    }     
+                      }
+                    }
                   }
-                }          
-              ]                        
+                }
+              ]
             }
           ]
         }
@@ -111,28 +111,20 @@ func TestBootstrap(t *testing.T) {
   },
   "dynamic_resources": {
     "lds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
-          }
-        ]
-      }
+      "ads": {}
     },
     "cds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
+      "ads": {}
+    },
+    "ads_config": {
+      "api_type": "GRPC",
+      "grpc_services": [
+        {
+          "envoy_grpc": {
+            "cluster_name": "contour"
           }
-        ]
-      }
+        }
+      ]
     }
   },
   "admin": {
@@ -212,8 +204,8 @@ func TestBootstrap(t *testing.T) {
         "connect_timeout": "0.250s",
         "load_assignment": {
           "cluster_name": "service-stats",
-          "endpoints": [   
-            {                          
+          "endpoints": [
+            {
               "lb_endpoints": [
                 {
                   "endpoint": {
@@ -221,11 +213,11 @@ func TestBootstrap(t *testing.T) {
                       "socket_address": {
                         "address": "8.8.8.8",
                         "port_value": 9200
-                      }    
-                    }     
+                      }
+                    }
                   }
-                }          
-              ]                        
+                }
+              ]
             }
           ]
         }
@@ -234,28 +226,20 @@ func TestBootstrap(t *testing.T) {
   },
   "dynamic_resources": {
     "lds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
-          }
-        ]
-      }
+      "ads": {}
     },
     "cds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
+      "ads": {}
+    },
+    "ads_config": {
+      "api_type": "GRPC",
+      "grpc_services": [
+        {
+          "envoy_grpc": {
+            "cluster_name": "contour"
           }
-        ]
-      }
+        }
+      ]
     }
   },
   "admin": {
@@ -334,8 +318,8 @@ func TestBootstrap(t *testing.T) {
         "connect_timeout": "0.250s",
         "load_assignment": {
           "cluster_name": "service-stats",
-          "endpoints": [   
-            {                          
+          "endpoints": [
+            {
               "lb_endpoints": [
                 {
                   "endpoint": {
@@ -343,11 +327,11 @@ func TestBootstrap(t *testing.T) {
                       "socket_address": {
                         "address": "127.0.0.1",
                         "port_value": 9001
-                      }    
-                    }     
+                      }
+                    }
                   }
-                }          
-              ]                        
+                }
+              ]
             }
           ]
         }
@@ -356,28 +340,20 @@ func TestBootstrap(t *testing.T) {
   },
   "dynamic_resources": {
     "lds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
-          }
-        ]
-      }
+      "ads": {}
     },
     "cds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
+      "ads": {}
+    },
+    "ads_config": {
+      "api_type": "GRPC",
+      "grpc_services": [
+        {
+          "envoy_grpc": {
+            "cluster_name": "contour"
           }
-        ]
-      }
+        }
+      ]
     }
   },
   "admin": {
@@ -457,8 +433,8 @@ func TestBootstrap(t *testing.T) {
         "connect_timeout": "0.250s",
         "load_assignment": {
           "cluster_name": "service-stats",
-          "endpoints": [   
-            {                          
+          "endpoints": [
+            {
               "lb_endpoints": [
                 {
                   "endpoint": {
@@ -466,11 +442,11 @@ func TestBootstrap(t *testing.T) {
                       "socket_address": {
                         "address": "127.0.0.1",
                         "port_value": 9001
-                      }    
-                    }     
+                      }
+                    }
                   }
-                }          
-              ]                        
+                }
+              ]
             }
           ]
         }
@@ -479,28 +455,20 @@ func TestBootstrap(t *testing.T) {
   },
   "dynamic_resources": {
     "lds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
-          }
-        ]
-      }
+      "ads": {}
     },
     "cds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
+      "ads": {}
+    },
+    "ads_config": {
+      "api_type": "GRPC",
+      "grpc_services": [
+        {
+          "envoy_grpc": {
+            "cluster_name": "contour"
           }
-        ]
-      }
+        }
+      ]
     }
   },
   "admin": {
@@ -578,8 +546,8 @@ func TestBootstrap(t *testing.T) {
         "connect_timeout": "0.250s",
         "load_assignment": {
           "cluster_name": "service-stats",
-          "endpoints": [   
-            {                          
+          "endpoints": [
+            {
               "lb_endpoints": [
                 {
                   "endpoint": {
@@ -587,11 +555,11 @@ func TestBootstrap(t *testing.T) {
                       "socket_address": {
                         "address": "127.0.0.1",
                         "port_value": 9001
-                      }    
-                    }     
+                      }
+                    }
                   }
-                }          
-              ]                        
+                }
+              ]
             }
           ]
         }
@@ -600,28 +568,20 @@ func TestBootstrap(t *testing.T) {
   },
   "dynamic_resources": {
     "lds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
-          }
-        ]
-      }
+      "ads": {}
     },
     "cds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
+      "ads": {}
+    },
+    "ads_config": {
+      "api_type": "GRPC",
+      "grpc_services": [
+        {
+          "envoy_grpc": {
+            "cluster_name": "contour"
           }
-        ]
-      }
+        }
+      ]
     }
   },
   "admin": {
@@ -713,10 +673,10 @@ func TestBootstrap(t *testing.T) {
                 "trusted_ca": {
                   "filename": "CA.cert"
                 },
-		"match_subject_alt_names": [
-		  {
-		    "exact": "contour"
-		  }
+                "match_subject_alt_names": [
+                  {
+                    "exact": "contour"
+                  }
                 ]
               }
             }
@@ -730,8 +690,8 @@ func TestBootstrap(t *testing.T) {
         "connect_timeout": "0.250s",
         "load_assignment": {
           "cluster_name": "service-stats",
-          "endpoints": [   
-            {                          
+          "endpoints": [
+            {
               "lb_endpoints": [
                 {
                   "endpoint": {
@@ -739,11 +699,11 @@ func TestBootstrap(t *testing.T) {
                       "socket_address": {
                         "address": "127.0.0.1",
                         "port_value": 9001
-                      }    
-                    }     
+                      }
+                    }
                   }
-                }          
-              ]                        
+                }
+              ]
             }
           ]
         }
@@ -752,28 +712,20 @@ func TestBootstrap(t *testing.T) {
   },
   "dynamic_resources": {
     "lds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
-          }
-        ]
-      }
+      "ads": {}
     },
     "cds_config": {
-      "api_config_source": {
-        "api_type": "GRPC",
-        "grpc_services": [
-          {
-            "envoy_grpc": {
-              "cluster_name": "contour"
-            }
+      "ads": {}
+    },
+    "ads_config": {
+      "api_type": "GRPC",
+      "grpc_services": [
+        {
+          "envoy_grpc": {
+            "cluster_name": "contour"
           }
-        ]
-      }
+        }
+      ]
     }
   },
   "admin": {

@@ -33,6 +33,9 @@ import (
 
 	"k8s.io/client-go/dynamic"
 
+	envoy_cache "github.com/envoyproxy/go-control-plane/pkg/cache"
+	envoy_server "github.com/envoyproxy/go-control-plane/pkg/server"
+
 	"github.com/projectcontour/contour/internal/contour"
 	"github.com/projectcontour/contour/internal/dag"
 	"github.com/projectcontour/contour/internal/debug"
@@ -172,6 +175,14 @@ func doServe(log logrus.FieldLogger, ctx *serveContext) error {
 	converter, err := k8s.NewUnstructuredConverter()
 	check(err)
 
+	snapshotCache := envoy_cache.NewSnapshotCache(true, envoy_cache.IDHash{}, log.WithField("context", "ShapshotCache"))
+
+	// step 5. endpoints updates are handled directly by the EndpointsTranslator
+	// due to their high update rate and their orthogonal nature.
+	et := &contour.EndpointsTranslator{
+		FieldLogger: log.WithField("context", "endpointstranslator"),
+	}
+
 	// step 3. build our mammoth Kubernetes event handler.
 	eventHandler := &contour.EventHandler{
 		CacheHandler: &contour.CacheHandler{
@@ -188,9 +199,11 @@ func doServe(log logrus.FieldLogger, ctx *serveContext) error {
 				MinimumProtocolVersion: dag.MinProtoVersion(ctx.TLSConfig.MinimumProtocolVersion),
 				RequestTimeout:         ctx.RequestTimeout,
 			},
-			ListenerCache: contour.NewListenerCache(ctx.statsAddr, ctx.statsPort),
-			FieldLogger:   log.WithField("context", "CacheHandler"),
-			Metrics:       metrics.NewMetrics(registry),
+			ListenerCache:       contour.NewListenerCache(ctx.statsAddr, ctx.statsPort),
+			SnapshotCache:       snapshotCache,
+			EndpointsTranslator: et,
+			FieldLogger:         log.WithField("context", "CacheHandler"),
+			Metrics:             metrics.NewMetrics(registry),
 		},
 		HoldoffDelay:    100 * time.Millisecond,
 		HoldoffMaxDelay: 500 * time.Millisecond,
@@ -221,6 +234,14 @@ func doServe(log logrus.FieldLogger, ctx *serveContext) error {
 		Logger:    log.WithField("context", "dynamicHandler"),
 	}
 
+	endpointsCh := make(chan int)
+	go func() {
+		for _ = range endpointsCh {
+			eventHandler.CacheHandler.OnEndpointsChange()
+		}
+	}()
+	et.Register(endpointsCh, -1)
+
 	// step 4. register our resource event handler with the k8s informers,
 	// using the SyncList to keep track of what to sync later.
 	var informerSyncList k8s.InformerSyncList
@@ -249,12 +270,6 @@ func doServe(log logrus.FieldLogger, ctx *serveContext) error {
 	// If root-ingressroutes are not defined, then add the informer for all namespaces
 	if len(namespacedInformers) == 0 {
 		informerSyncList.Add(coreInformers.Core().V1().Secrets().Informer()).AddEventHandler(eventRecorder)
-	}
-
-	// step 5. endpoints updates are handled directly by the EndpointsTranslator
-	// due to their high update rate and their orthogonal nature.
-	et := &contour.EndpointsTranslator{
-		FieldLogger: log.WithField("context", "endpointstranslator"),
 	}
 
 	informerSyncList.Add(coreInformers.Core().V1().Endpoints().Informer()).AddEventHandler(et)
@@ -351,15 +366,9 @@ func doServe(log logrus.FieldLogger, ctx *serveContext) error {
 		}
 		log.Printf("informer caches synced")
 
-		resources := map[string]cgrpc.Resource{
-			eventHandler.CacheHandler.ClusterCache.TypeURL():  &eventHandler.CacheHandler.ClusterCache,
-			eventHandler.CacheHandler.RouteCache.TypeURL():    &eventHandler.CacheHandler.RouteCache,
-			eventHandler.CacheHandler.ListenerCache.TypeURL(): &eventHandler.CacheHandler.ListenerCache,
-			eventHandler.CacheHandler.SecretCache.TypeURL():   &eventHandler.CacheHandler.SecretCache,
-			et.TypeURL(): et,
-		}
+		srv := envoy_server.NewServer(contextFromStopCh(stop), snapshotCache, nil)
 		opts := ctx.grpcOptions()
-		s := cgrpc.NewAPI(log, resources, registry, opts...)
+		s := cgrpc.NewServer(srv, registry, opts...)
 		addr := net.JoinHostPort(ctx.xdsAddr, strconv.Itoa(ctx.xdsPort))
 		l, err := net.Listen("tcp", addr)
 		if err != nil {
@@ -411,4 +420,13 @@ func startInformer(inf informer, log logrus.FieldLogger) func(stop <-chan struct
 		<-stop
 		return nil
 	}
+}
+
+func contextFromStopCh(stop <-chan struct{}) context.Context {
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		defer cancel()
+		<-stop
+	}()
+	return ctx
 }

@@ -19,6 +19,11 @@ package contour
 import (
 	"time"
 
+	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	"github.com/envoyproxy/go-control-plane/pkg/cache"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/google/uuid"
 	"github.com/projectcontour/contour/internal/dag"
 	"github.com/projectcontour/contour/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
@@ -32,6 +37,9 @@ type CacheHandler struct {
 	RouteCache
 	ClusterCache
 	SecretCache
+	*EndpointsTranslator
+
+	SnapshotCache cache.SnapshotCache
 
 	*metrics.Metrics
 
@@ -48,6 +56,16 @@ func (ch *CacheHandler) OnChange(dag *dag.DAG) {
 	ch.updateClusters(dag)
 
 	ch.SetDAGLastRebuilt(time.Now())
+
+	if err := ch.updateSnapshot(); err != nil {
+		ch.Errorf("error updating snapshot cache: %v", err)
+	}
+}
+
+func (ch *CacheHandler) OnEndpointsChange() {
+	if err := ch.updateSnapshot(); err != nil {
+		ch.Errorf("error updating snapshot cache: %v", err)
+	}
 }
 
 func (ch *CacheHandler) updateSecrets(root dag.Visitable) {
@@ -68,4 +86,56 @@ func (ch *CacheHandler) updateRoutes(root dag.Visitable) {
 func (ch *CacheHandler) updateClusters(root dag.Visitable) {
 	clusters := visitClusters(root)
 	ch.ClusterCache.Update(clusters)
+}
+
+func (ch *CacheHandler) makeSnapshot() (cache.Snapshot, error) {
+	version, err := uuid.NewUUID()
+	if err != nil {
+		return cache.Snapshot{}, err
+	}
+
+	var (
+		endpoints = toResourceSlice(ch.EndpointsTranslator.Contents())
+		clusters  = toResourceSlice(ch.ClusterCache.Contents())
+		routes    = toResourceSlice(ch.RouteCache.Contents())
+		listeners = toResourceSlice(ch.ListenerCache.Contents())
+	)
+
+	// TODO(skaslev) FIXME
+	for _, r := range routes {
+		if route, ok := r.(*v2.RouteConfiguration); ok {
+			route.ValidateClusters = &wrappers.BoolValue{Value: true}
+		}
+	}
+
+	return cache.NewSnapshot(
+		version.String(),
+		endpoints,
+		clusters,
+		routes,
+		listeners,
+		nil), nil
+}
+
+func (ch *CacheHandler) updateSnapshot() error {
+	snapshot, err := ch.makeSnapshot()
+	if err != nil {
+		return err
+	}
+
+	// TODO(skaslev) REMOVEME
+	err = snapshot.Consistent()
+	if err != nil {
+		ch.Infof("updateSnapshot current snapshot is inconsistent %s", err)
+	}
+
+	return ch.SnapshotCache.SetSnapshot("contour", snapshot)
+}
+
+func toResourceSlice(msgs []proto.Message) []cache.Resource {
+	res := make([]cache.Resource, len(msgs))
+	for i := range msgs {
+		res[i] = cache.Resource(msgs[i])
+	}
+	return res
 }

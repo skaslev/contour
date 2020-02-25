@@ -34,8 +34,9 @@ import (
 func Bootstrap(c *BootstrapConfig) *bootstrap.Bootstrap {
 	b := &bootstrap.Bootstrap{
 		DynamicResources: &bootstrap.Bootstrap_DynamicResources{
-			LdsConfig: ConfigSource("contour"),
-			CdsConfig: ConfigSource("contour"),
+			AdsConfig: ConfigSource("contour").GetApiConfigSource(),
+			LdsConfig: ConfigSourceADS(),
+			CdsConfig: ConfigSourceADS(),
 		},
 		StaticResources: &bootstrap.Bootstrap_StaticResources{
 			Clusters: []*api.Cluster{{
